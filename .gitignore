@@ -1,0 +1,9 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/DesktopApp/obj
+/FaceLibrary/bin/Debug/netstandard2.0
+/FaceLibrary/obj
+/DesktopApp/Images
