@@ -10,4 +10,10 @@
     <ProjectReference Include="..\FaceLibrary\FaceLibrary.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="app.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -24,7 +24,6 @@ namespace FaceDetector
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainWindowViewModel();
         }
     }
 }

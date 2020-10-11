@@ -3,7 +3,9 @@
 ################################################################################
 
 /.vs
+/DesktopApp/bin
 /DesktopApp/obj
-/FaceLibrary/bin/Debug/netstandard2.0
+/FaceLibrary/bin
 /FaceLibrary/obj
 /DesktopApp/Images
+/DesktopApp/app.settings.json

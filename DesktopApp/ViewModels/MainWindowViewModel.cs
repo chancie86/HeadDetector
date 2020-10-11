@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using DesktopApp;
 using FaceDetector.Commands;
 using FaceLibrary;
 using Microsoft.Azure.CognitiveServices.Vision.Face.Models;
@@ -21,14 +22,11 @@ namespace FaceDetector.ViewModels
     public class MainWindowViewModel
         : BaseViewModel
     {
-        private readonly FaceService _faceService;
+        private readonly AppConfig _config;
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(AppConfig config)
         {
-            var creds = new FaceServiceCredentials(
-                "",
-                "");
-            _faceService = new FaceService(creds);
+            _config = config;
             LoadCommand = new SimpleAsyncCommand(LoadCommandExecute, HandleError);
         }
 
@@ -70,14 +68,19 @@ namespace FaceDetector.ViewModels
 
         public async Task LoadCommandExecute(object parameter)
         {
+            var creds = new FaceServiceCredentials(
+                _config.SubscriptionKey,
+                _config.EndpointUrl);
+            var faceService = new FaceService(creds);
+
             LoadImage();
-            await Detect();
+            await Detect(faceService);
         }
 
         private void LoadImage()
         {
             var openFileDialog = new OpenFileDialog();
-            openFileDialog.InitialDirectory = AssemblyDirectory;
+            openFileDialog.InitialDirectory = _config.InitialFolder;
             openFileDialog.Filter = "Image files (*.jpg;*.png)|*.jpg;*.png|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
@@ -90,10 +93,10 @@ namespace FaceDetector.ViewModels
             }
         }
 
-        private async Task Detect()
+        private async Task Detect(FaceService faceService)
         {
-            _faceService.Authenticate();
-            var detector = _faceService.GetFaceDetector();
+            faceService.Authenticate();
+            var detector = faceService.GetFaceDetector();
 
             var attributeTypes = new List<FaceAttributeType?>
             {
@@ -166,17 +169,6 @@ namespace FaceDetector.ViewModels
             return new Rect(
                 new Point(newLeft, newTop),
                 new Size(newWidth, newHeight));
-        }
-
-        private static string AssemblyDirectory
-        {
-            get
-            {
-                var codeBase = Assembly.GetExecutingAssembly().CodeBase;
-                var uri = new UriBuilder(codeBase);
-                var path = Uri.UnescapeDataString(uri.Path);
-                return Path.GetDirectoryName(path);
-            }
         }
 
         private void HandleError(Exception ex)
