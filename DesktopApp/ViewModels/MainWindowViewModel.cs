@@ -111,9 +111,10 @@ namespace FaceDetector.ViewModels
             var faces = await detector.Detect(fileStream, attributeTypes);
 
             var result = new StringBuilder();
-            foreach (var face in faces)
+            for (var i = 0; i < faces.Count; i++)
             {
-                result.Append(face.GetAttributeText());
+                var face = faces[i];
+                result.Append(face.GetAttributeText($"Face id: {i}", faces.Count == 1));
             }
 
             DrawFaces((BitmapImage)Image.Source, faces);
@@ -128,8 +129,10 @@ namespace FaceDetector.ViewModels
             using var drawingContext = visual.RenderOpen();
             drawingContext.DrawImage(image, new Rect(0, 0, image.Width, image.Height));
 
-            foreach (var face in faces)
+            for (var i = 0; i < faces.Count; i++)
             {
+                var face = faces[i];
+
                 var hRatio = image.Width / image.PixelWidth;
                 var vRatio = image.Height / image.PixelHeight;
 
@@ -140,6 +143,7 @@ namespace FaceDetector.ViewModels
 
                 DrawRectangle(drawingContext, faceRect, Brushes.Red);
                 DrawRectangle(drawingContext, headRect, Brushes.Green);
+                DrawText(drawingContext, headRect.TopLeft, image.DpiY / 96, i.ToString());
             }
 
             drawingContext.Close();
@@ -155,6 +159,18 @@ namespace FaceDetector.ViewModels
         private void DrawRectangle(DrawingContext context, Rect rectangle, Brush brush)
         {
             context.DrawRectangle(null, new Pen(brush, 2.0), rectangle);
+        }
+
+        private void DrawText(DrawingContext context, Point origin, double dip, string text)
+        {
+            context.DrawText(
+                new FormattedText(text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
+                    new Typeface("Verdana"),
+                    32,
+                    Brushes.LawnGreen,
+                    dip),
+                origin
+                );
         }
 
         private Rect ResizeRectFromCenter(Rect rect, double scaleX, double scaleY)
