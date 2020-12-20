@@ -16,11 +16,15 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="10" />
-            <ColumnDefinition Width="100" />
+            <ColumnDefinition Width="200" />
         </Grid.ColumnDefinitions>
 
         <TextBlock Text="{Binding FilePath}" Grid.Column="0" Grid.Row="0" />
-        <Button Command="{Binding LoadCommand}" Content="Detect" Grid.Column="2" Grid.Row="0" />
+        <StackPanel Grid.Column="2" Grid.Row="0">
+            <Button Command="{Binding LoadCommand}" Content="Detect Face" />
+            <Button Command="{Binding RenderHairFilterCommand}" Content="Render Hair Filter" />
+            <Button Command="{Binding RenderFrequentialMaskCommand}" Content="Render Frequential Mask" />
+        </StackPanel>
 
         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
             <Grid.ColumnDefinitions>

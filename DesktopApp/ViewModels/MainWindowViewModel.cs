@@ -1,21 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using DesktopApp;
+using DesktopApp.ViewModels;
+using DesktopApp.Views;
 using FaceDetector.Commands;
 using FaceLibrary;
 using Microsoft.Azure.CognitiveServices.Vision.Face.Models;
 using Microsoft.Win32;
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
+using Image = System.Windows.Controls.Image;
+using Pen = System.Windows.Media.Pen;
+using Point = System.Windows.Point;
+using Size = System.Windows.Size;
 
 namespace FaceDetector.ViewModels
 {
@@ -28,6 +36,8 @@ namespace FaceDetector.ViewModels
         {
             _config = config;
             LoadCommand = new SimpleAsyncCommand(LoadCommandExecute, HandleError);
+            RenderHairFilterCommand = new SimpleAsyncCommand(RenderHairFilterExecute, HandleError);
+            RenderFrequentialMaskCommand = new SimpleAsyncCommand(RenderFrequentialMaskExecute, HandleError);
         }
 
         private Image _image;
@@ -55,6 +65,8 @@ namespace FaceDetector.ViewModels
         }
 
         public ICommand LoadCommand { get; }
+        public ICommand RenderHairFilterCommand { get; }
+        public ICommand RenderFrequentialMaskCommand { get; }
 
         public string FilePath
         {
@@ -75,6 +87,26 @@ namespace FaceDetector.ViewModels
 
             LoadImage();
             await Detect(faceService);
+        }
+
+        public async Task RenderHairFilterExecute(object parameter)
+        {
+            var window = new GaussianWindow()
+            {
+                DataContext = new GaussianWindowViewModel()
+            };
+            window.Show();
+        }
+
+        public async Task RenderFrequentialMaskExecute(object parameter)
+        {
+            LoadImage();
+
+            var window = new FrequentialMaskWindow()
+            {
+                DataContext = new FrequentialMaskWindowViewModel((BitmapImage)Image.Source)
+            };
+            window.Show();
         }
 
         private void LoadImage()

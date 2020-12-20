@@ -71,7 +71,7 @@ namespace FaceLibrary
             Append(resultBuilder, verbose, $"Glasses : {face.FaceAttributes.Glasses}");
 
             // Get hair color
-            Hair hair = face.FaceAttributes.Hair;
+            var hair = face.FaceAttributes.Hair;
             string color = null;
             if (hair.HairColor.Count == 0) { if (hair.Invisible) { color = "Invisible"; } else { color = "Bald"; } }
             HairColorType returnColor = HairColorType.Unknown;
