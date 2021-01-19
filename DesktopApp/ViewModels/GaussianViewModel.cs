@@ -1,40 +1,32 @@
-﻿using System;
-using System.Windows;
+﻿using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DesktopApp.Extensions;
-using FaceDetector.ViewModels;
 using FaceLibrary;
 using FaceLibrary.Hair;
 
 namespace DesktopApp.ViewModels
 {
-    public class GaussianWindowViewModel
-        : BaseViewModel
+    public class GaussianViewModel
+        : ImageViewModel
     {
         private const int KernelSize = 201;
-        private Image _image;
 
-        public GaussianWindowViewModel()
+        public async Task Run()
         {
-            var kernel = new FrequentialMap(KernelSize).Run();
-            kernel = Normalise(kernel);
+            Kernel kernel = null;
+
+            await Task.Run(() =>
+            {
+                kernel = new FrequentialMap(KernelSize).Run();
+                kernel = Normalise(kernel);
+            });
 
             Image = new Image
             {
                 Source = DrawKernel(kernel)
             };
-        }
-
-        public Image Image
-        {
-            get => _image;
-            set
-            {
-                _image = value;
-                OnPropertyChanged();
-            }
         }
 
         private WriteableBitmap DrawKernel(Kernel kernel)

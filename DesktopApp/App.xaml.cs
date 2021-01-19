@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using DesktopApp;
 using FaceDetector.ViewModels;
+using FaceDetector.Views;
 using Newtonsoft.Json;
 
 namespace FaceDetector

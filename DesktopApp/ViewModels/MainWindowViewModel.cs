@@ -1,29 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using DesktopApp;
 using DesktopApp.ViewModels;
-using DesktopApp.Views;
 using FaceDetector.Commands;
-using FaceLibrary;
-using Microsoft.Azure.CognitiveServices.Vision.Face.Models;
 using Microsoft.Win32;
-using Brush = System.Windows.Media.Brush;
-using Brushes = System.Windows.Media.Brushes;
 using Image = System.Windows.Controls.Image;
-using Pen = System.Windows.Media.Pen;
-using Point = System.Windows.Point;
-using Size = System.Windows.Size;
 
 namespace FaceDetector.ViewModels
 {
@@ -36,15 +19,17 @@ namespace FaceDetector.ViewModels
         {
             _config = config;
             LoadCommand = new SimpleAsyncCommand(LoadCommandExecute, HandleError);
-            RenderHairFilterCommand = new SimpleAsyncCommand(RenderHairFilterExecute, HandleError);
-            RenderFrequentialMaskCommand = new SimpleAsyncCommand(RenderFrequentialMaskExecute, HandleError);
+            AttributesCommand = new SimpleCommand(AttributesCommandExecute, HandleError);
+            ProcessCommand = new SimpleAsyncCommand(ProcessCommandExecute, HandleError);
         }
 
-        private Image _image;
         private string _filePath;
-        private string _imageAttributes;
+        private ImageViewModel _image;
+        private HeadViewModel _head;
+        private GaussianViewModel _gaussian;
+        private FrequentialMaskViewModel _frequentialMask;
 
-        public Image Image
+        public ImageViewModel Image
         {
             get => _image;
             set
@@ -54,19 +39,9 @@ namespace FaceDetector.ViewModels
             }
         }
 
-        public string ImageAttributes
-        {
-            get => _imageAttributes;
-            set
-            {
-                _imageAttributes = value;
-                OnPropertyChanged();
-            }
-        }
-
         public ICommand LoadCommand { get; }
-        public ICommand RenderHairFilterCommand { get; }
-        public ICommand RenderFrequentialMaskCommand { get; }
+        public ICommand AttributesCommand { get; }
+        public ICommand ProcessCommand { get; }
 
         public string FilePath
         {
@@ -78,35 +53,75 @@ namespace FaceDetector.ViewModels
             }
         }
 
+        public HeadViewModel Head
+        {
+            get => _head;
+            set
+            {
+                _head = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public GaussianViewModel Gaussian
+        {
+            get => _gaussian;
+            set
+            {
+                _gaussian = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public FrequentialMaskViewModel FrequentialMask
+        {
+            get => _frequentialMask;
+            set
+            {
+                _frequentialMask = value;
+                OnPropertyChanged();
+            }
+        }
+
         public async Task LoadCommandExecute(object parameter)
         {
-            var creds = new FaceServiceCredentials(
-                _config.SubscriptionKey,
-                _config.EndpointUrl);
-            var faceService = new FaceService(creds);
+            Image = null;
+            Head = null;
+            Gaussian = null;
+            FrequentialMask = null;
 
             LoadImage();
-            await Detect(faceService);
         }
 
-        public async Task RenderHairFilterExecute(object parameter)
+        public void AttributesCommandExecute(object parameter)
         {
-            var window = new GaussianWindow()
-            {
-                DataContext = new GaussianWindowViewModel()
-            };
-            window.Show();
+            ShowMessage(Head?.ImageAttributes);
         }
 
-        public async Task RenderFrequentialMaskExecute(object parameter)
+        public async Task ProcessCommandExecute(object parameter)
         {
-            LoadImage();
+            await RenderHead();
+            await RenderGaussian();
+            await RenderFrequentialMask();
+        }
 
-            var window = new FrequentialMaskWindow()
-            {
-                DataContext = new FrequentialMaskWindowViewModel((BitmapImage)Image.Source)
-            };
-            window.Show();
+        private async Task RenderHead()
+        {
+            Head = new HeadViewModel(_config, FilePath);
+            await Head.Detect(Image.Image);
+        }
+
+        private async Task RenderGaussian()
+        {
+            Gaussian = new GaussianViewModel();
+            await Gaussian.Run();
+        }
+
+        public async Task RenderFrequentialMask()
+        {
+            var mask = new FrequentialMaskViewModel((BitmapImage) Image.Image.Source);
+            await mask.Run();
+            FrequentialMask = mask;
         }
 
         private void LoadImage()
@@ -117,106 +132,15 @@ namespace FaceDetector.ViewModels
             if (openFileDialog.ShowDialog() == true)
             {
                 var fileUri = new Uri(openFileDialog.FileName);
-                Image = new Image
+                Image = new ImageViewModel
                 {
-                    Source = new BitmapImage(fileUri)
+                    Image = new Image
+                    {
+                        Source = new BitmapImage(fileUri)
+                    }
                 };
                 FilePath = openFileDialog.FileName;
             }
-        }
-
-        private async Task Detect(FaceService faceService)
-        {
-            faceService.Authenticate();
-            var detector = faceService.GetFaceDetector();
-
-            var attributeTypes = new List<FaceAttributeType?>
-            {
-                FaceAttributeType.Accessories, FaceAttributeType.Age,
-                FaceAttributeType.Blur, FaceAttributeType.Emotion, FaceAttributeType.Exposure,
-                FaceAttributeType.FacialHair,
-                FaceAttributeType.Gender, FaceAttributeType.Glasses, FaceAttributeType.Hair, FaceAttributeType.HeadPose,
-                FaceAttributeType.Makeup, FaceAttributeType.Noise, FaceAttributeType.Occlusion, FaceAttributeType.Smile
-            };
-
-            await using var fileStream = File.OpenRead(FilePath);
-            var faces = await detector.Detect(fileStream, attributeTypes);
-
-            var result = new StringBuilder();
-            for (var i = 0; i < faces.Count; i++)
-            {
-                var face = faces[i];
-                result.Append(face.GetAttributeText($"Face id: {i}", faces.Count == 1));
-            }
-
-            DrawFaces((BitmapImage)Image.Source, faces);
-
-            ImageAttributes = result.ToString();
-        }
-
-        private void DrawFaces(BitmapImage image, IList<DetectedFace> faces)
-        {
-            var visual = new DrawingVisual();
-
-            using var drawingContext = visual.RenderOpen();
-            drawingContext.DrawImage(image, new Rect(0, 0, image.Width, image.Height));
-
-            for (var i = 0; i < faces.Count; i++)
-            {
-                var face = faces[i];
-
-                var hRatio = image.Width / image.PixelWidth;
-                var vRatio = image.Height / image.PixelHeight;
-
-                var faceRect = new Rect(
-                    new Point(face.FaceRectangle.Left * hRatio, face.FaceRectangle.Top * vRatio),
-                    new Size(face.FaceRectangle.Width * hRatio, face.FaceRectangle.Height * vRatio));
-                var headRect = ResizeRectFromCenter(faceRect, 5.0 / 3, 2);
-
-                DrawRectangle(drawingContext, faceRect, Brushes.Red);
-                DrawRectangle(drawingContext, headRect, Brushes.Green);
-                DrawText(drawingContext, headRect.TopLeft, image.DpiY / 96, i.ToString());
-            }
-
-            drawingContext.Close();
-
-            var target = new RenderTargetBitmap(image.PixelWidth, image.PixelHeight, image.DpiX, image.DpiY, PixelFormats.Pbgra32);
-            target.Render(visual);
-            Image = new Image
-            {
-                Source = target
-            };
-        }
-
-        private void DrawRectangle(DrawingContext context, Rect rectangle, Brush brush)
-        {
-            context.DrawRectangle(null, new Pen(brush, 2.0), rectangle);
-        }
-
-        private void DrawText(DrawingContext context, Point origin, double dip, string text)
-        {
-            context.DrawText(
-                new FormattedText(text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
-                    new Typeface("Verdana"),
-                    32,
-                    Brushes.LawnGreen,
-                    dip),
-                origin
-                );
-        }
-
-        private Rect ResizeRectFromCenter(Rect rect, double scaleX, double scaleY)
-        {
-            var centerX = (rect.Width / 2) + rect.Left;
-            var centerY = (rect.Height / 2) + rect.Top;
-            var newWidth = rect.Width * scaleX;
-            var newHeight = rect.Height * scaleY;
-            var newLeft = centerX - (newWidth / 2);
-            var newTop = centerY - (newHeight / 2);
-
-            return new Rect(
-                new Point(newLeft, newTop),
-                new Size(newWidth, newHeight));
         }
 
         private void HandleError(Exception ex)

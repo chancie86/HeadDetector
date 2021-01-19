@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -12,29 +14,29 @@ using Image = System.Windows.Controls.Image;
 
 namespace DesktopApp.ViewModels
 {
-    public class FrequentialMaskWindowViewModel
-        : BaseViewModel
+    public class FrequentialMaskViewModel
+        : ImageViewModel
     {
-        private Image _image;
+        private FrequentialMask _mask;
 
-        public FrequentialMaskWindowViewModel(BitmapImage bitmap)
+        public FrequentialMaskViewModel(BitmapImage bitmap)
         {
-            var mask = new FrequentialMask(BitmapImageToBitmap(bitmap), 7).Run();
+            _mask = new FrequentialMask(BitmapImageToBitmap(bitmap), 7);
+        }
+
+        public async Task Run()
+        {
+            FrequentialMaskResult result = null;
+
+            await Task.Run(() =>
+            {
+                result = _mask.Run();
+            });
 
             Image = new Image
             {
-                Source = DrawMask(mask)
+                Source = DrawMask(result)
             };
-        }
-
-        public Image Image
-        {
-            get => _image;
-            set
-            {
-                _image = value;
-                OnPropertyChanged();
-            }
         }
 
         private WriteableBitmap DrawMask(FrequentialMaskResult mask)

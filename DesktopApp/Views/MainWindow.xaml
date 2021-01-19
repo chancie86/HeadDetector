@@ -1,10 +1,10 @@
-﻿<Window x:Class="FaceDetector.MainWindow"
+﻿<Window x:Class="FaceDetector.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FaceDetector"
         xmlns:viewModels="clr-namespace:FaceDetector.ViewModels"
+        xmlns:views="clr-namespace:DesktopApp.Views"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}, IsDesignTimeCreatable=False}"
         Title="MainWindow" Height="450" Width="800">
@@ -21,19 +21,16 @@
 
         <TextBlock Text="{Binding FilePath}" Grid.Column="0" Grid.Row="0" />
         <StackPanel Grid.Column="2" Grid.Row="0">
-            <Button Command="{Binding LoadCommand}" Content="Detect Face" />
-            <Button Command="{Binding RenderHairFilterCommand}" Content="Render Hair Filter" />
-            <Button Command="{Binding RenderFrequentialMaskCommand}" Content="Render Frequential Mask" />
+            <Button Command="{Binding LoadCommand}" Content="Load Image" />
+            <Button Command="{Binding ProcessCommand}" Content="Process" />
+            <Button Command="{Binding AttributesCommand}" Content="Show Attributes" />
         </StackPanel>
 
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
-                <ColumnDefinition Width="2*" />
-            </Grid.ColumnDefinitions>
-            <Image Source="{Binding Image.Source}" />
-            <TextBlock Text="{Binding ImageAttributes}" Grid.Column="1" />
-        </Grid>
-        
+        <WrapPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
+            <views:ImageView DataContext="{Binding Image}" />
+            <views:ImageView DataContext="{Binding Head}" />
+            <views:ImageView DataContext="{Binding Gaussian}" />
+            <views:ImageView DataContext="{Binding FrequentialMask}" />
+        </WrapPanel>
     </Grid>
 </Window>
