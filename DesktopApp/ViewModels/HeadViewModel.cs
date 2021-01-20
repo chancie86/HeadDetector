@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -8,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using FaceLibrary;
+using FaceLibrary.Face;
 using Microsoft.Azure.CognitiveServices.Vision.Face.Models;
 
 namespace DesktopApp.ViewModels
@@ -32,36 +34,17 @@ namespace DesktopApp.ViewModels
                 Source = originalImage.Source.Clone()
             };
 
-            var credentials = new FaceServiceCredentials(
-                _config.SubscriptionKey,
-                _config.EndpointUrl);
-            var faceService = new FaceService(credentials);
-
-            faceService.Authenticate();
-            var detector = faceService.GetFaceDetector();
-
-            var attributeTypes = new List<FaceAttributeType?>
+            var filter = new Filter(new Config
             {
-                FaceAttributeType.Accessories, FaceAttributeType.Age,
-                FaceAttributeType.Blur, FaceAttributeType.Emotion, FaceAttributeType.Exposure,
-                FaceAttributeType.FacialHair,
-                FaceAttributeType.Gender, FaceAttributeType.Glasses, FaceAttributeType.Hair, FaceAttributeType.HeadPose,
-                FaceAttributeType.Makeup, FaceAttributeType.Noise, FaceAttributeType.Occlusion, FaceAttributeType.Smile
-            };
+                EndpointUrl = _config.EndpointUrl,
+                SubscriptionKey = _config.SubscriptionKey
+            }, _filePath);
 
-            await using var fileStream = File.OpenRead(_filePath);
-            var faces = await detector.Detect(fileStream, attributeTypes);
-
-            var result = new StringBuilder();
-            for (var i = 0; i < faces.Count; i++)
-            {
-                var face = faces[i];
-                result.Append(face.GetAttributeText($"Face id: {i}", faces.Count == 1));
-            }
+            var faces = await filter.Run();
 
             DrawFaces((BitmapImage)image.Source, faces);
 
-            ImageAttributes = result.ToString();
+            ImageAttributes = string.Join(',', faces.Select(x => x.Attributes));
         }
 
         public string ImageAttributes
@@ -74,24 +57,26 @@ namespace DesktopApp.ViewModels
             }
         }
 
-        private void DrawFaces(BitmapImage image, IList<DetectedFace> faces)
+        private void DrawFaces(BitmapImage image, IList<Head> heads)
         {
             var visual = new DrawingVisual();
 
             using var drawingContext = visual.RenderOpen();
             drawingContext.DrawImage(image, new Rect(0, 0, image.Width, image.Height));
 
-            for (var i = 0; i < faces.Count; i++)
+            for (var i = 0; i < heads.Count; i++)
             {
-                var face = faces[i];
+                var head = heads[i];
 
                 var hRatio = image.Width / image.PixelWidth;
                 var vRatio = image.Height / image.PixelHeight;
 
                 var faceRect = new Rect(
-                    new Point(face.FaceRectangle.Left * hRatio, face.FaceRectangle.Top * vRatio),
-                    new Size(face.FaceRectangle.Width * hRatio, face.FaceRectangle.Height * vRatio));
-                var headRect = ResizeRectFromCenter(faceRect, 5.0 / 3, 2);
+                    new Point(head.FaceArea.Left * hRatio, head.FaceArea.Top * vRatio),
+                    new Size(head.FaceArea.Width * hRatio, head.FaceArea.Height * vRatio));
+                var headRect = new Rect(
+                    new Point(head.HeadArea.Left * hRatio, head.HeadArea.Top * vRatio),
+                    new Size(head.HeadArea.Width * hRatio, head.HeadArea.Height * vRatio));
 
                 DrawRectangle(drawingContext, faceRect, Brushes.Red);
                 DrawRectangle(drawingContext, headRect, Brushes.Green);
@@ -123,20 +108,6 @@ namespace DesktopApp.ViewModels
                     dip),
                 origin
             );
-        }
-
-        private Rect ResizeRectFromCenter(Rect rect, double scaleX, double scaleY)
-        {
-            var centerX = (rect.Width / 2) + rect.Left;
-            var centerY = (rect.Height / 2) + rect.Top;
-            var newWidth = rect.Width * scaleX;
-            var newHeight = rect.Height * scaleY;
-            var newLeft = centerX - (newWidth / 2);
-            var newTop = centerY - (newHeight / 2);
-
-            return new Rect(
-                new Point(newLeft, newTop),
-                new Size(newWidth, newHeight));
         }
     }
 }

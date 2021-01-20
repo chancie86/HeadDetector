@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FaceLibrary.FrequentialMask
+namespace FaceLibrary
 {
     public class MaskResult
     {

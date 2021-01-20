@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DesktopApp.Extensions;
 using FaceDetector.ViewModels;
+using FaceLibrary;
 using FaceLibrary.FrequentialMask;
 using Color = System.Drawing.Color;
 using Image = System.Windows.Controls.Image;
