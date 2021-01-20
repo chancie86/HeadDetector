@@ -4,7 +4,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DesktopApp.Extensions;
 using FaceLibrary;
-using FaceLibrary.Hair;
+using FaceLibrary.FrequentialMask;
 
 namespace DesktopApp.ViewModels
 {
@@ -19,7 +19,7 @@ namespace DesktopApp.ViewModels
 
             await Task.Run(() =>
             {
-                kernel = new FrequentialMap(KernelSize).Run();
+                kernel = new Map(KernelSize).Run();
                 kernel = Normalise(kernel);
             });
 

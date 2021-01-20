@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace FaceLibrary.Hair
+namespace FaceLibrary.FrequentialMask
 {
     // https://answers.opencv.org/question/167044/frequential-analysis-in-opencv/
-    public class FrequentialMap
+    public class Map
     {
-        public FrequentialMap(int kernelSize = 100, double f0 = 0.4, double sigma = 0.04)
+        public Map(int kernelSize = 100, double f0 = 0.4, double sigma = 0.04)
         {
             KernelSize = kernelSize;
             F0 = f0;

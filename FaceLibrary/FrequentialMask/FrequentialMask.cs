@@ -2,17 +2,17 @@
 using System.Drawing;
 using FaceLibrary.Extensions;
 
-namespace FaceLibrary.Hair
+namespace FaceLibrary.FrequentialMask
 {
     /// <summary>
     /// https://hal.archives-ouvertes.fr/hal-00322719/document
     /// </summary>
-    public class FrequentialMask
+    public class Mask
     {
         private readonly Bitmap _image;
         private int _kernelSize;
 
-        public FrequentialMask(Bitmap image, int kernelSize)
+        public Mask(Bitmap image, int kernelSize)
         {
             _image = image ?? throw new ArgumentNullException(nameof(image));
             _kernelSize = kernelSize;
@@ -22,9 +22,9 @@ namespace FaceLibrary.Hair
 
         public int Height => _image.Height;
 
-        public FrequentialMaskResult Run()
+        public MaskResult Run()
         {
-            var kernel = new FrequentialMap(_kernelSize).Run();
+            var kernel = new Map(_kernelSize).Run();
 
             var imageConvolver = new ImageConvolver(_image, kernel);
             var convolvedImage = imageConvolver.Run();
@@ -34,7 +34,7 @@ namespace FaceLibrary.Hair
             var threshold = convolvedImage.Mean - convolvedImage.StandardDeviation;
             convolvedImage.Data.ForEach((x, y, value) => { mask[x, y] = value <= threshold; });
 
-            return new FrequentialMaskResult(mask);
+            return new MaskResult(mask);
         }
     }
 }

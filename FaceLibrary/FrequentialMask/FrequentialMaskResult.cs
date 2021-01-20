@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace FaceLibrary.Hair
+namespace FaceLibrary.FrequentialMask
 {
-    public class FrequentialMaskResult
+    public class MaskResult
     {
         private bool[,] _data;
 
-        public FrequentialMaskResult(bool[,] data)
+        public MaskResult(bool[,] data)
         {
             _data = data ?? throw new ArgumentNullException(nameof(data));
         }

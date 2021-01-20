@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DesktopApp.Extensions;
 using FaceDetector.ViewModels;
-using FaceLibrary.Hair;
+using FaceLibrary.FrequentialMask;
 using Color = System.Drawing.Color;
 using Image = System.Windows.Controls.Image;
 
@@ -17,16 +17,16 @@ namespace DesktopApp.ViewModels
     public class FrequentialMaskViewModel
         : ImageViewModel
     {
-        private FrequentialMask _mask;
+        private Mask _mask;
 
         public FrequentialMaskViewModel(BitmapImage bitmap)
         {
-            _mask = new FrequentialMask(BitmapImageToBitmap(bitmap), 7);
+            _mask = new Mask(BitmapImageToBitmap(bitmap), 7);
         }
 
         public async Task Run()
         {
-            FrequentialMaskResult result = null;
+            MaskResult result = null;
 
             await Task.Run(() =>
             {
@@ -39,7 +39,7 @@ namespace DesktopApp.ViewModels
             };
         }
 
-        private WriteableBitmap DrawMask(FrequentialMaskResult mask)
+        private WriteableBitmap DrawMask(MaskResult mask)
         {
             var bitmap = new WriteableBitmap(mask.Width, mask.Height, 96, 96, PixelFormats.Bgr32, null);
 
