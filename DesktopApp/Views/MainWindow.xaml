@@ -31,6 +31,7 @@
             <views:ImageView DataContext="{Binding Head}" />
             <views:ImageView DataContext="{Binding Gaussian}" />
             <views:ImageView DataContext="{Binding FrequentialMask}" />
+            <views:ImageView DataContext="{Binding ColourMask}" />
         </WrapPanel>
     </Grid>
 </Window>

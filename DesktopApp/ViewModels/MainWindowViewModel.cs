@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using DesktopApp;
 using DesktopApp.ViewModels;
 using FaceDetector.Commands;
+using FaceLibrary;
+using FaceLibrary.Face;
 using Microsoft.Win32;
 using Image = System.Windows.Controls.Image;
 
@@ -28,6 +31,7 @@ namespace FaceDetector.ViewModels
         private HeadViewModel _head;
         private GaussianViewModel _gaussian;
         private FrequentialMaskViewModel _frequentialMask;
+        private ColourMaskViewModel _colourMask;
 
         public ImageViewModel Image
         {
@@ -83,12 +87,23 @@ namespace FaceDetector.ViewModels
             }
         }
 
+        public ColourMaskViewModel ColourMask
+        {
+            get => _colourMask;
+            set
+            {
+                _colourMask = value;
+                OnPropertyChanged();
+            }
+        }
+
         public async Task LoadCommandExecute(object parameter)
         {
             Image = null;
             Head = null;
             Gaussian = null;
             FrequentialMask = null;
+            ColourMask = null;
 
             LoadImage();
         }
@@ -103,6 +118,7 @@ namespace FaceDetector.ViewModels
             await RenderHead();
             await RenderGaussian();
             await RenderFrequentialMask();
+            await RenderColourMask();
         }
 
         private async Task RenderHead()
@@ -122,6 +138,15 @@ namespace FaceDetector.ViewModels
             var mask = new FrequentialMaskViewModel((BitmapImage) Image.Image.Source);
             await mask.Run();
             FrequentialMask = mask;
+        }
+
+        public async Task RenderColourMask()
+        {
+            var mask = new ColourMaskViewModel((BitmapImage)Image.Image.Source,
+                Head.Heads.First(),
+                FrequentialMask.Result);
+            await mask.Run();
+            ColourMask = mask;
         }
 
         private void LoadImage()

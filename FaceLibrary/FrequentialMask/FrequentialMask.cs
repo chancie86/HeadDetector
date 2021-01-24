@@ -7,12 +7,13 @@ namespace FaceLibrary.FrequentialMask
     /// <summary>
     /// https://hal.archives-ouvertes.fr/hal-00322719/document
     /// </summary>
-    public class Mask
+    public class FrequentialMask
+        : IMask
     {
         private readonly Bitmap _image;
         private int _kernelSize;
 
-        public Mask(Bitmap image, int kernelSize)
+        public FrequentialMask(Bitmap image, int kernelSize)
         {
             _image = image ?? throw new ArgumentNullException(nameof(image));
             _kernelSize = kernelSize;

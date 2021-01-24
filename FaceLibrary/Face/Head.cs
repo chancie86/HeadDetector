@@ -4,20 +4,20 @@ namespace FaceLibrary.Face
 {
     public class Head
     {
-        public Head(RectangleF faceArea, string attributes)
+        public Head(Rectangle faceArea, string attributes)
         {
             FaceArea = faceArea;
             HeadArea = ResizeRectFromCenter(faceArea, 5.0f / 3, 2);
             Attributes = attributes;
         }
 
-        public RectangleF FaceArea { get; }
+        public Rectangle FaceArea { get; }
 
-        public RectangleF HeadArea { get; }
+        public Rectangle HeadArea { get; }
 
         public string Attributes { get; }
 
-        private RectangleF ResizeRectFromCenter(RectangleF rect, float scaleX, float scaleY)
+        private Rectangle ResizeRectFromCenter(Rectangle rect, float scaleX, float scaleY)
         {
             var centerX = (rect.Width / 2) + rect.Left;
             var centerY = (rect.Height / 2) + rect.Top;
@@ -26,9 +26,9 @@ namespace FaceLibrary.Face
             var newLeft = centerX - (newWidth / 2);
             var newTop = centerY - (newHeight / 2);
 
-            return new RectangleF(
-                newLeft, newTop,
-                newWidth, newHeight);
+            return new Rectangle(
+                (int)newLeft, (int)newTop,
+                (int)newWidth, (int)newHeight);
         }
     }
 }

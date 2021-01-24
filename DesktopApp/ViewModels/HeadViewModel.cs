@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -40,12 +41,15 @@ namespace DesktopApp.ViewModels
                 SubscriptionKey = _config.SubscriptionKey
             }, _filePath);
 
-            var faces = await filter.Run();
+            var heads = await filter.Run();
 
-            DrawFaces((BitmapImage)image.Source, faces);
+            DrawFaces((BitmapImage)image.Source, heads);
 
-            ImageAttributes = string.Join(',', faces.Select(x => x.Attributes));
+            Heads = new ReadOnlyCollection<Head>(heads);
+            ImageAttributes = string.Join(',', heads.Select(x => x.Attributes));
         }
+
+        public IReadOnlyList<Head> Heads { get; private set; }
 
         public string ImageAttributes
         {
